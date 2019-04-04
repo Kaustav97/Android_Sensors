@@ -18,6 +18,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -34,8 +36,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ArrayAdapter<String> adp;
 
     private Sensor lightsns,gravsns;
-    private Button lightbtn,gravbtn;
-    private boolean flg =false;
+    private Button clrbtn;
 
     private SensorEventListener listener;
 
@@ -51,41 +52,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setSupportActionBar(toolbar);
 
         tv1 = (ListView) findViewById(R.id.senlst);
+        clrbtn = (Button) findViewById(R.id.clrbtn);
+
         final SensorManager sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> devsens = sensorManager.getSensorList(Sensor.TYPE_ALL);
-        tv1.setAdapter(new ArrayAdapter<Sensor>(this,android.R.layout.simple_list_item_1,devsens));
+        final List<Sensor> devsens = sensorManager.getSensorList(Sensor.TYPE_ALL);
+        List<String> sNames= new ArrayList<String>();
 
-        lightbtn = (Button)findViewById(R.id.lightbtn);
-        gravbtn = (Button)findViewById(R.id.gravbtn);
+        for(Sensor s:devsens){
+            sNames.add(s.getName());
+        }
 
-        lightsns = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        gravsns = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-        // OTHER SENSORS
-
-        sensorManager.registerListener(this,lightsns,SensorManager.SENSOR_DELAY_NORMAL);
         listener=this;
 
-        lightbtn.setOnClickListener(new View.OnClickListener() {
+        tv1.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, sNames) );
+        tv1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View view) {
-
-                if(flg){sensorManager.unregisterListener(listener);flg=!flg; }
-                else { sensorManager.registerListener(listener,lightsns,SensorManager.SENSOR_DELAY_NORMAL);flg=!flg;}
-
-//                new Handler().postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if(flg){sensorManager.unregisterListener(listener);flg=!flg; }
-//                        else { sensorManager.registerListener(listener,lightsns,SensorManager.SENSOR_DELAY_NORMAL);flg=!flg;}
-//                    }
-//                },0);
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                sensorManager.unregisterListener(listener);
+                sensorManager.registerListener(listener,devsens.get(i),SensorManager.SENSOR_DELAY_NORMAL);
             }
         });
 
-    }
-
-
-    public void setLight(android.view.View v1 ){
+        clrbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sensorManager.unregisterListener(listener);
+            }
+        });
     }
 
     @Override
